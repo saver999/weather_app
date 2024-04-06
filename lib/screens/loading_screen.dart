@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:weather/services/location.dart';
 import 'location_screen.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class LoadingScreen extends StatefulWidget {
   @override
   _LoadingScreenState createState() => _LoadingScreenState();
@@ -11,9 +12,15 @@ class LoadingScreen extends StatefulWidget {
 class _LoadingScreenState extends State<LoadingScreen> {
   
  Future<void> getData() async {
-   Response response = await get('https://api.openweathermap.org/data/3.0/onecall?lat=33.44&lon=-94.04&appid={c05dd6910a8ee6736626b70dbf459ad6}' as Uri);
+   http.Response response = await  http.get(Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=33.44&lon=-94.04&appid=123e72837ae38cc4194256d87b0a6014'));
+
    if(response.statusCode==200){
      String data = response.body;
+     final dataDecode = jsonDecode(data);
+     double temp = dataDecode['hourly'][0]['temp'];
+     int id = dataDecode['weather'][0]['id'];
+
+     print("risultato $id");
    }else{
      print(response.statusCode);
    }
@@ -32,7 +39,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
       body: Center(
         child: TextButton(
           onPressed: () {
-            getLocation();
+            getData();
           },
           child: Text('Get Location'),
         ),
