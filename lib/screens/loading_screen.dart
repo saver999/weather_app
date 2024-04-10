@@ -4,46 +4,53 @@ import 'package:weather/services/location.dart';
 import 'location_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:weather/services/networking.dart';
+import 'location_screen.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 class LoadingScreen extends StatefulWidget {
   @override
   _LoadingScreenState createState() => _LoadingScreenState();
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  
- Future<void> getData() async {
-   http.Response response = await  http.get(Uri.parse('https://api.openweathermap.org/data/2.5/weather?lat=33.44&lon=-94.04&appid=123e72837ae38cc4194256d87b0a6014'));
+  late double latitude;
+  late double longitude;
+ Future<void> getWeatherData() async {
+   Location location= Location();
+   await location.getCurrentLocation();
+   latitude = location.latitude;
+   longitude = location.longitude;
+   String url ='https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=123e72837ae38cc4194256d87b0a6014&units=metric';
+    var weatherData = await Networking().getData(url);
 
-   if(response.statusCode==200){
-     String data = response.body;
-     final dataDecode = jsonDecode(data);
-     double temp = dataDecode['hourly'][0]['temp'];
-     int id = dataDecode['weather'][0]['id'];
-
-     print("risultato $id");
-   }else{
-     print(response.statusCode);
-   }
- } 
-  
- void getLocation() async {
-    Location location= Location();
-    await location.getCurrentLocation();
-    double latitude = location.latitude;
-    double longitude = location.longitude;
-    print("Latitude: $latitude Longitude: $longitude");
+     double temp = weatherData['main']['temp'];
+     int id = weatherData['weather'][0]['id'];
+     String name = weatherData['name'];
+     print("Risultato: $id");
+     print("Temperature: $temp");
+     print("Name: $name");
+   Navigator.push(
+     context,
+     MaterialPageRoute(builder: (context) => LocationScreen(weatherData)),
+   );
+ }
+ @override
+  void initState() {
+    // TODO: implement initState
+   getWeatherData();
   }
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      body: Center(
-        child: TextButton(
-          onPressed: () {
-            getData();
-          },
-          child: Text('Get Location'),
-        ),
-      ),
+      body:
+       Center(
+         child:  SpinKitRotatingCircle(
+           color: Colors.white,
+           size: 50.0,
+         ),
+       ),
     );
   }
 }
